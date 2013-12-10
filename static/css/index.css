@@ -1,0 +1,15 @@
+@charset "UTF-8";
+/* CSS Document */
+
+body {
+	background-image:url(static/images/BackgroundImage.png');
+	background-color:#333333;
+	background-repeat:no-repeat;
+	background-position:center; 
+	max-width:1024px;
+	height:3840px;
+}
+
+#Logo {
+	text-align:center;
+}

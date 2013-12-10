@@ -1,0 +1,291 @@
+<html>
+<head>
+	<title>Celestial Structures</title>
+
+	<style>canvas { width: 100%; height: 100% }</style>
+	
+	<title>Celestial Structures</title>
+	
+
+	<link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/3.3.0/build/cssreset/reset-min.css">
+	<link rel="stylesheet" type="text/css" href="static/css/index.css">
+	<link rel="stylesheet" type="text/css" href="static/css/style.css">
+	
+	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+	<script type="text/javascript" src="static/js/js.js"></script>
+	<script type="text/javascript" src="static/js/jquery.stellar.min.js"></script>
+	<script type="text/javascript" src="static/js/waypoints.min.js"></script>
+	<script type="text/javascript" src="static/js/jquery.easing.1.3.js"></script>
+
+	<script src="https://rawgithub.com/mrdoob/three.js/master/build/three.js"></script>
+	<script src="static/js/OrbitControls.js"></script>
+	
+	
+</head>
+<body>
+	<img class="logo" src="static/images/Logo.png">
+	
+	<ul class="navigation">
+		<li data-slide="1">project</li>
+		<li data-slide="2">about</li>
+		<li data-slide="3">creators</li>
+	</ul>
+	
+	<div class="slide" id="slide1" data-slide="1" data-stellar-background-ratio="0.5">		
+	</div>
+	
+	<div class="slide" id="slide2" data-slide="2" data-stellar-background-ratio="0.5">
+	</div>
+
+	<div class="slide" id="slide3" data-slide="3" data-stellar-background-ratio="0.5">
+	</div>
+	
+	
+	<script>
+
+	function Space(){
+		var space_scale = 100;
+		this.w = 0.335 * space_scale;
+		this.h = 0.335 * space_scale;
+		this.d = 0.8 * space_scale;
+		var geometry = new THREE.Geometry();
+		var material = new THREE.MeshBasicMaterial({color: "#787878" ,wireframe:true});		
+		// LEFT WALL
+		var left = new THREE.PlaneGeometry( this.w, this.d, 2, 2 );
+		var l = new THREE.Mesh(left, material);
+		l.applyMatrix( new THREE.Matrix4().makeTranslation( -this.w/2,0,0) );
+		l.rotation.z = Math.PI/2;
+		l.rotation.y = Math.PI/2;
+		scene.add(l);
+		//  RIGHT WALL
+		var right = new THREE.PlaneGeometry( this.w, this.d, 2, 2 );
+		var r = new THREE.Mesh(right, material);
+		r.applyMatrix( new THREE.Matrix4().makeTranslation( this.w/2,0,0) );
+		r.rotation.z = Math.PI/2;
+		r.rotation.y = Math.PI/2;
+		scene.add(r);
+		// BACK WALL
+		var back = new THREE.PlaneGeometry( this.w, this.h, 2, 2 );
+		var b = new THREE.Mesh(back, material);
+		b.applyMatrix( new THREE.Matrix4().makeTranslation( 0,0,this.d/-2) );
+		scene.add(b);
+		// FLOOR
+		var floor = new THREE.PlaneGeometry( this.w, this.d, 2, 2 );
+		var f = new THREE.Mesh(floor, material);
+		f.applyMatrix( new THREE.Matrix4().makeTranslation( 0,this.h/-2,0) );
+		f.rotation.x = Math.PI/2;
+		scene.add(f);
+	};
+
+
+	function Tetrahedron(x,y,z){
+		this.single_scale = 1;
+		this.x = x;
+		this.y = y;
+		this.z = z;
+		
+		this.top = new THREE.Vector3( this.x, this.y, this.z);
+		this.p1 = new THREE.Vector3(this.x+0.943*this.single_scale, this.y-1*this.single_scale, this.z);
+		this.p2 = new THREE.Vector3(this.x-0.471*this.single_scale, this.y-1*this.single_scale, this.z+0.816*this.single_scale);
+		this.p3 = new THREE.Vector3(this.x-0.471*this.single_scale, this.y-1*this.single_scale, this.z-0.816*this.single_scale);
+	};
+
+	Tetrahedron.prototype = {
+		pushVertices: function(geometry){
+			geometry.vertices.push( new THREE.Vector3(this.top.x, this.top.y, this.top.z) );
+			geometry.vertices.push( new THREE.Vector3(this.p1.x, this.p1.y, this.p1.z) );
+			geometry.vertices.push( new THREE.Vector3(this.p2.x, this.p2.y, this.p2.z) );
+			geometry.vertices.push( new THREE.Vector3(this.top.x, this.top.y, this.top.z) );
+			geometry.vertices.push( new THREE.Vector3(this.p2.x, this.p2.y, this.p2.z) );
+			geometry.vertices.push( new THREE.Vector3(this.p3.x, this.p3.y, this.p3.z) );
+			geometry.vertices.push( new THREE.Vector3(this.top.x, this.top.y, this.top.z) );
+			geometry.vertices.push( new THREE.Vector3(this.p1.x, this.p1.y, this.p1.z) );
+			geometry.vertices.push( new THREE.Vector3(this.p3.x, this.p3.y, this.p3.z) );			
+		}
+	};
+
+	function PyramidStructure(x,y,z){
+		this.geometry = new THREE.Geometry();
+		this.material = new THREE.LineBasicMaterial( { linewidth:1} );
+
+		this.position = new THREE.Vector3(0,0,0);
+		this.tetrahedron = new Tetrahedron(this.position.x, this.position.y, this.position.z);			
+		this.tetrahedron.pushVertices(this.geometry);
+		this.drawTetrahedrons(10,  this.tetrahedron, this.geometry);
+		this.t = new THREE.Line(this.geometry, this.material);
+		this.t.rotation.y = Math.PI/2;
+		this.t.position = new THREE.Vector3(x,y,z);
+		scene.add(this.t);
+	}
+	
+
+	PyramidStructure.prototype = {
+		drawTetrahedrons: function(level, t, geometry){
+			if(level>0){
+				var t1 = new Tetrahedron(t.p1.x, t.p1.y, t.p1.z);
+				var t2 = new Tetrahedron(t.p2.x, t.p2.y, t.p2.z);				
+				var t3 = new Tetrahedron(t.p3.x, t.p3.y, t.p3.z);
+				this.drawTetrahedrons(level-1,t1);
+				this.drawTetrahedrons(level-1,t2);
+				this.drawTetrahedrons(level-1,t3);
+				t1.pushVertices(this.geometry);				
+				t2.pushVertices(this.geometry);				
+				t3.pushVertices(this.geometry);				
+			}
+
+		},
+		update: function(x,y,z,r){
+			this.geometry.verticesNeedUpdate = true;	
+			this.t.rotation.y = r;
+
+			// this.t.position.x=x;
+			// this.t.position.y=y;
+			// this.t.position.z=z;
+			
+		}
+	}
+
+	function Motor(x,y,z){
+		this.position = new THREE.Vector3(x,y,z);
+		var sphere = new THREE.Mesh(new THREE.SphereGeometry(0.2, 5,5), new THREE.MeshNormalMaterial());
+		sphere.applyMatrix( new THREE.Matrix4().makeTranslation( this.position.x, this.position.y, this.position.z) );
+		scene.add(sphere);
+	}
+
+	function MotorSet(x,y,z){
+		this.center = new THREE.Vector3(x,y,z);
+
+		this.d = 12.5;
+		this.w = 12.5;
+		this.h = this.center.y;
+		this.x = this.center.x;
+		this.y = this.center.y;
+		this.z = this.center.z;
+
+		this.m1 = new Motor(this.center.x - this.w, -this.center.y, this.center.z+this.d);
+		this.m2 = new Motor(this.center.x - this.w, -this.center.y, this.center.z-this.d);
+		this.m3 = new Motor(this.center.x + this.w, -this.center.y, this.center.z-this.d);
+		this.m4 = new Motor(this.center.x + this.w, -this.center.y, this.center.z+this.d);
+
+		this.p = new PyramidStructure(this.center.x, 0, this.center.z);
+		this.p.position = this.p.t.position;
+
+		this.stringGeometry = new THREE.Geometry();
+		this.stringMaterial = new THREE.LineBasicMaterial( { linewidth:2} );
+		this.stringGeometry.vertices.push( new THREE.Vector3(this.p.position.x, this.p.position.y, this.p.position.z) );
+		this.stringGeometry.vertices.push( new THREE.Vector3(this.m1.position.x, this.m1.position.y, this.m1.position.z) );
+		
+		this.stringGeometry.vertices.push( new THREE.Vector3(this.p.position.x, this.p.position.y, this.p.position.z) );
+		this.stringGeometry.vertices.push( new THREE.Vector3(this.m2.position.x, this.m2.position.y, this.m2.position.z) );
+		
+		this.stringGeometry.vertices.push( new THREE.Vector3(this.p.position.x, this.p.position.y, this.p.position.z) );
+		this.stringGeometry.vertices.push( new THREE.Vector3(this.m3.position.x, this.m3.position.y, this.m3.position.z) );
+		
+		this.stringGeometry.vertices.push( new THREE.Vector3(this.p.position.x, this.p.position.y, this.p.position.z) );
+		this.stringGeometry.vertices.push( new THREE.Vector3(this.m4.position.x, this.m4.position.y, this.m4.position.z) );
+		
+		var t = new THREE.Line(this.stringGeometry, this.stringMaterial);
+		scene.add( t);
+		
+		var quad = new THREE.PlaneGeometry( 2*this.w, 2*this.d, 1, 1);
+		var qmaterial = new THREE.MeshBasicMaterial({color: "#787878" ,wireframe:true});		
+		var q = new THREE.Mesh(quad, qmaterial);
+		q.applyMatrix( new THREE.Matrix4().makeTranslation( this.center.x,-this.h, this.center.z) );
+		q.rotation.x = Math.PI/2;
+		scene.add(q);
+		
+		var m1 = new THREE.Mesh(new THREE.SphereGeometry(0.2, 5, 5), new THREE.MeshNormalMaterial());
+		m1.position.y = -m1.position.y;
+		m1.applyMatrix( new THREE.Matrix4().makeTranslation( this.m1.position.x, this.m1.position.y, this.m1.position.z) );
+		scene.add(m1);
+		
+		var m2 = new THREE.Mesh(new THREE.SphereGeometry(0.2, 5, 5), new THREE.MeshNormalMaterial());
+		m2.applyMatrix( new THREE.Matrix4().makeTranslation( this.m2.position.x, this.m2.position.y, this.m2.position.z) );
+		scene.add(m2);
+		
+		var m3 = new THREE.Mesh(new THREE.SphereGeometry(0.2, 5, 5), new THREE.MeshNormalMaterial());
+		m3.applyMatrix( new THREE.Matrix4().makeTranslation( this.m3.position.x, this.m3.position.y, this.m3.position.z) );
+		scene.add(m3);
+		
+		var m4 = new THREE.Mesh(new THREE.SphereGeometry(0.2, 5, 5), new THREE.MeshNormalMaterial());
+		m4.applyMatrix( new THREE.Matrix4().makeTranslation( this.m4.position.x, this.m4.position.y, this.m4.position.z) );
+		scene.add(m4);
+		
+
+	}
+
+	MotorSet.prototype = {
+		update: function(x,y,z,r){
+			this.p.update(x,y,z,r);
+
+			// this.stringGeometry.verticesNeedUpdate = true;
+			// this.stringGeometry.vertices[0] = new THREE.Vector3(this.p.t.position.x+x, this.p.t.position.y+y, this.p.t.position.z+z);
+			// this.stringGeometry.vertices[2] = new THREE.Vector3(this.p.t.position.x+x, this.p.t.position.y+y, this.p.t.position.z+z);
+			// this.stringGeometry.vertices[4] = new THREE.Vector3(this.p.t.position.x+x, this.p.t.position.y+y, this.p.t.position.z+z);
+			// this.stringGeometry.vertices[6] = new THREE.Vector3(this.p.t.position.x+x, this.p.t.position.y+y, this.p.t.position.z+z);
+
+
+		}
+	}
+
+	var scene = new THREE.Scene();
+	var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+
+	var renderer = new THREE.WebGLRenderer();
+	renderer.setSize( window.innerWidth, window.innerHeight );
+		// renderer.setSize( 1024, 1024);
+	// document.body.appendChild( renderer.domElement );
+	document.getElementById("slide1").appendChild(renderer.domElement);
+	/////////////////////////////////////////
+	var space = new Space();
+	var mset1 = new MotorSet(-space.w/10, -space.h/2, space.d/3);
+	var mset2 = new MotorSet(+space.w/10, -space.h/2, 0);
+	var mset3 = new MotorSet(-space.w/10, -space.h/2, -space.d/3);
+
+	/////////////////////////////////////////		
+	/////////////////////////////////////////		
+	/////////////////////////////////////////		
+	// add subtle blue ambient lighting
+    var ambientLight = new THREE.AmbientLight(0x000044);
+    scene.add(ambientLight);
+    
+	
+	camera.position.z = 70;
+	controls = new THREE.OrbitControls( camera, renderer.domElement );
+	
+	var rot1 = 0;
+	var rot2 = 0;
+	var rot3 = 0;
+	
+	var mset1_rot_speed = 0;
+	var mset2_rot_speed = 0;
+	var mset3_rot_speed = 0;
+	
+	function render() {
+		controls.update();
+		///////////
+		// 0,0,0 is the center of the quad, at the center of the height
+		///////////
+		rot1 += mset1_rot_speed;
+		rot2 += mset2_rot_speed;
+		rot3 += mset3_rot_speed;
+		
+		mset1.update(5,5,0, rot1);
+		mset2.update(5,8,0, rot2);
+		mset3.update(-5,-5,0, rot3);
+		
+		requestAnimationFrame(render);
+		renderer.render(scene, camera);
+
+	}
+
+	render();
+
+	</script>
+	<script type="text/javascript" src="static/js/main.js"></script>
+	
+	
+	
+
+</body>
+</html>
