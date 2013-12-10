@@ -1,5 +1,5 @@
 To run the server
-> pyton main.py
+> python main.py
 
 Then open a browser and go to
 http://localhost/
